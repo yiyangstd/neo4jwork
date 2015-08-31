@@ -22,7 +22,7 @@ import java.util.Map;
  */
 public class LabelPropagationTest {
     public static void main(String[] args){
-        GraphDatabaseService g = NeoConnect.getInstance("F:\\neo4jTest\\201101m3.db");
+        GraphDatabaseService g = NeoConnect.getInstance("F:\\amzData\\amzData.db");
         GrapAlgoEngine engine = new GrapAlgoEngine(g);
         LabelPropagation labelPropagation = new LabelPropagation();
         engine.execute(labelPropagation, 0.99);
@@ -42,7 +42,7 @@ public class LabelPropagationTest {
             System.out.println("Label:" + entry.getKey() + "  Num: " + entry.getValue());
         }
 
-        Path outPutPath = Paths.get("F:\\neo4jTest\\201101m3result.txt");
+        Path outPutPath = Paths.get("F:\\amzData\\amzDataout.txt");
         BufferedWriter writer = null;
         try {
             if (Files.exists(outPutPath)) {

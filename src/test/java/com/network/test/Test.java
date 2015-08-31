@@ -17,9 +17,11 @@ public class Test {
         one commit
          */
 //        System.out.println("Hello World!");
-        GraphDatabaseService g = NeoConnect.getInstance("F:\\amzData\\amzData.db");
-        System.out.println("nodeCount: " + DegreeCount.countNode(g));
-        System.out.println("edgeCount: " + DegreeCount.countEdge(g));
+//        GraphDatabaseService g = NeoConnect.getInstance("F:\\amzData\\amzData.db");
+//        System.out.println("nodeCount: " + DegreeCount.countNode(g));
+//        System.out.println("edgeCount: " + DegreeCount.countEdge(g));
+        double t = 3.223;
+        System.out.println(t / 4);
 //        Map<Long, Long> map = DegreeCount.countDegree(g);
 //        for(Map.Entry entry : map.entrySet()){
 //            System.out.println("degree:" + entry.getKey() + "  count: " + entry.getValue());

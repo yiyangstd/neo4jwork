@@ -15,23 +15,28 @@ import java.util.Map;
  */
 public class PageRank implements VertexAlgorithm{
     protected final String attName = "PageRank";
+    protected final String attTempName = "TempAtt";
+    protected GraphDatabaseService g;
     protected Map<Long, Double> result = new HashMap<>();
     protected long nodeCount = 0;
     protected double dampingFactor = 0.85;
+    protected double second = 0.0;
     protected long stablePart = 0L;
 
     public PageRank(GraphDatabaseService g ){
+        this.g = g;
         try(Transaction tx = g.beginTx()){
             for(Node n : GlobalGraphOperations.at(g).getAllNodes()){
                 nodeCount ++;
             }
             tx.success();
         }
+        this.second = (1 - dampingFactor) / nodeCount;
     }
 
     @Override
     public void init(Node node) {
-        node.setProperty(attName, 1.0 / this.nodeCount);
+        node.setProperty(attName, 1.0 / nodeCount);
     }
 
     @Override
@@ -42,8 +47,15 @@ public class PageRank implements VertexAlgorithm{
             double nextRank = (double)otherNode.getProperty(attName);
             rank += nextRank / otherNode.getDegree();
         }
-        rank *= dampingFactor;
-        node.setProperty(attName, rank);
+        rank = rank * dampingFactor + second;
+        if(node.hasProperty(attName)){
+            double oldRank = (double) node.getProperty(attName);
+            if(oldRank - rank > -0.00000001 && oldRank - rank < 0.00000001){
+                stablePart ++;
+            }
+        }
+//        node.setProperty(attName, rank);
+        node.setProperty(attTempName, rank);
     }
 
     @Override
@@ -58,6 +70,12 @@ public class PageRank implements VertexAlgorithm{
 
     @Override
     public long getStablePart() {
+        try(Transaction tx = g.beginTx()){
+            for(Node node : GlobalGraphOperations.at(g).getAllNodes()){
+                node.setProperty(attName, node.getProperty(attTempName));
+            }
+            tx.success();
+        }
         return stablePart;
     }
 

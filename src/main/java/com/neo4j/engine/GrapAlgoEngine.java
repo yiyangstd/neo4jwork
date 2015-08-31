@@ -1,5 +1,6 @@
 package com.neo4j.engine;
 
+import com.neo4j.algorithm.PageRank;
 import com.neo4j.engine.algointerface.VertexAlgorithm;
 import com.util.Timer;
 import org.neo4j.graphdb.GraphDatabaseService;

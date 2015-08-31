@@ -12,7 +12,7 @@ import org.neo4j.tooling.GlobalGraphOperations;
  */
 public class NeoConnectTest {
     public static void main(String[] args){
-        GraphDatabaseService grapdb = NeoConnect.getInstance("F:\\neo4jTest\\201101m.db");
+        GraphDatabaseService grapdb = NeoConnect.getInstance("F:\\neo4jTest\\karate.db");
         int nodeCount = 0;
         int relsCount = 0;
         try (Transaction tx = grapdb.beginTx()) {
