@@ -92,7 +92,7 @@ public class FastNewman {
                     tx.success();
                 }
                 Q += deltaQ;
-                deltaQ = 0L;
+                deltaQ = 0.0;
             }else{
                 break;
             }

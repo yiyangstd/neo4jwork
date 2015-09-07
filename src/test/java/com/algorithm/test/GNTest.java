@@ -9,7 +9,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
  */
 public class GNTest {
     public static void main(String[] args){
-        GraphDatabaseService graph = NeoConnect.getInstance("F:\\neo4jTest\\simGN.db");
+        GraphDatabaseService graph = NeoConnect.getInstance("F:\\amzData\\amzData.db");
         GN gn = new GN(graph);
         gn.execute();
     }

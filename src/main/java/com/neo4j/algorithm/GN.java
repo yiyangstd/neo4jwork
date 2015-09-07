@@ -9,6 +9,8 @@ import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.tooling.GlobalGraphOperations;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Logger;
 
 /**
@@ -91,10 +93,17 @@ class Betweeness{
     public void computeBetweeness(){
         while(IteratorUtil.count(GlobalGraphOperations.at(graph).getAllRelationships()) > 0) {
             resetBetweeness();
+            Set<ShortestPath> pathSet = new HashSet<>();
             for (Node startNode : GlobalGraphOperations.at(graph).getAllNodes()) {
                 for (Node endNode : GlobalGraphOperations.at(graph).getAllNodes()) {
                     if (startNode.equals(endNode) || startNode.getDegree() == 0 || endNode.getDegree() == 0) {
                         continue;
+                    }
+                    ShortestPath spath = new ShortestPath(startNode.getId(), endNode.getId());
+                    if(pathSet.contains(spath)){
+                        continue;
+                    }else{
+                        pathSet.add(spath);
                     }
                     shortestPath(startNode, endNode);
                 }
@@ -103,7 +112,7 @@ class Betweeness{
         }
     }
 
-    public Relationship compute(){
+    private Relationship compute(){
         Relationship result = null;
         long betweeness = 0L;
         for(Relationship relationship : GlobalGraphOperations.at(graph).getAllRelationships()){
@@ -129,6 +138,44 @@ class Betweeness{
     private void resetBetweeness(){
         for(Relationship relationship : GlobalGraphOperations.at(graph).getAllRelationships()){
             relationship.setProperty(attName, 0L);
+        }
+    }
+
+    private class ShortestPath{
+        private long startNodeId;
+        private long endNodeId;
+
+        public ShortestPath(long startNodeId, long endNodeId){
+            this.startNodeId = startNodeId;
+            this.endNodeId = endNodeId;
+        }
+
+        public long getStartNodeId(){
+            return startNodeId;
+        }
+
+        public long getEndNodeId(){
+            return endNodeId;
+        }
+
+        @Override
+        public int hashCode(){
+            int result = 17;
+            result = 31 * result + (int)(startNodeId ^ (startNodeId >>> 32)) + (int)(endNodeId ^ (endNodeId >>> 32));
+            return result;
+        }
+
+        @Override
+        public boolean equals(Object o){
+            if(o == this){
+                return true;
+            }
+            if(!(o instanceof ShortestPath)){
+                return false;
+            }
+            ShortestPath path = (ShortestPath)o;
+            return (startNodeId == path.getStartNodeId() && endNodeId == path.getEndNodeId()) ||
+                    (startNodeId == path.getEndNodeId() && endNodeId == path.getStartNodeId());
         }
     }
 }
