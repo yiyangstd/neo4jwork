@@ -1,16 +1,17 @@
 package com.algorithm.test;
 
 import com.db.connect.NeoConnect;
-import com.neo4j.algorithm.GN;
+import com.neo4j.algorithm.FastNewman3;
 import org.neo4j.graphdb.GraphDatabaseService;
 
 /**
- * Created by Yangyi on 2015/9/5.
+ * Created by Yangyi on 2015/9/10.
  */
-public class GNTest {
+public class FastNewman3Test {
+
     public static void main(String[] args){
         GraphDatabaseService graph = NeoConnect.getInstance("F:\\neo4jTest\\201101m.db");
-        GN gn = new GN(graph);
-        gn.execute();
+        FastNewman3 test = new FastNewman3(graph);
+        test.execute();
     }
 }

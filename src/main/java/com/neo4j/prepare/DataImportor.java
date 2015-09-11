@@ -52,11 +52,15 @@ public class DataImportor {
                 long nodeA = Long.parseLong(nodeIds[0]);
                 long nodeB = Long.parseLong(nodeIds[1]);
                 if(!inserter.nodeExists(nodeA)){
-                    inserter.createNode(nodeA, new HashMap<String, Object>(), label);
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("community", nodeA);
+                    inserter.createNode(nodeA, map, label);
                     nodeNum ++;
                 }
                 if(!inserter.nodeExists(nodeB)){
-                    inserter.createNode(nodeB, new HashMap<String, Object>(), label);
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("community", nodeB);
+                    inserter.createNode(nodeB, map, label);
                     nodeNum ++;
                 }
                 inserter.createRelationship(nodeA, nodeB, RelTypes.CONNECT, weightMap);

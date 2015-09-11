@@ -8,16 +8,20 @@ import org.neo4j.tooling.GlobalGraphOperations;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 /**
- * Created by Yangyi on 2015/9/5.
+ * Created by Yangyi on 2015/9/10.
  */
-public class FastNewman2 {
+public class FastNewman3 {
     private Logger logger = Logger.getLogger(FastNewman2.class.toString());
     private GraphDatabaseService graph = null;
     private Label communityLabel;
@@ -34,7 +38,7 @@ public class FastNewman2 {
 
     private BufferedWriter fileWriter = null;
 
-    public FastNewman2(GraphDatabaseService graph){
+    public FastNewman3(GraphDatabaseService graph){
         Timer.timer().start();
         this.graph = graph;
         communityLabel = DynamicLabel.label("communityLabel");
@@ -76,7 +80,7 @@ public class FastNewman2 {
         logger.info("Init: " + Timer.timer().totalTime());
         logger.info("Network contains " + communityNum + " nodes, " + edgeNum + " edges");
 
-        java.nio.file.Path filePath = Paths.get("F:\\neo4jTest\\FNOut.txt");
+        java.nio.file.Path filePath = Paths.get("F:\\neo4jTest\\shangchang01.txt");
         try {
             if (Files.exists(filePath)) {
                 Files.delete(filePath);
@@ -90,40 +94,45 @@ public class FastNewman2 {
 
     public void execute(){
         Timer.timer().start();
-        while(true) {
-            this.aValueMap.clear();
-            this.eValueMap.clear();
-            try (Transaction tx = graph.beginTx()) {
-                for (Relationship relationship : GlobalGraphOperations.at(graph).getAllRelationships()) {
-                    Node srcNode = relationship.getStartNode();
-                    Node dstNode = relationship.getEndNode();
-                    long srcCommunity = (long) srcNode.getProperty(attName);
-                    long dstCommunity = (long) dstNode.getProperty(attName);
-                    if (srcCommunity == dstCommunity) {
-                        continue;
-                    } else {
-                        if(aValueMap.containsKey(srcCommunity)){
-                            aValueMap.put(srcCommunity, aValueMap.get(srcCommunity) + 1);
-                        }else{
-                            aValueMap.put(srcCommunity, 1L);
-                        }
-                        if(aValueMap.containsKey(dstCommunity)){
-                            aValueMap.put(dstCommunity, aValueMap.get(dstCommunity) + 1);
-                        }else{
-                            aValueMap.put(dstCommunity, 1L);
-                        }
-                        EValue eValue = new EValue(srcCommunity, dstCommunity);
-                        if(eValueMap.containsKey(eValue)){
-                            eValueMap.put(eValue, eValueMap.get(eValue) + 1L);
-                        }else{
-                            eValueMap.put(eValue, 1L);
-                        }
+
+        this.aValueMap.clear();
+        this.eValueMap.clear();
+        try (Transaction tx = graph.beginTx()) {
+            for (Relationship relationship : GlobalGraphOperations.at(graph).getAllRelationships()) {
+                Node srcNode = relationship.getStartNode();
+                Node dstNode = relationship.getEndNode();
+                long srcCommunity = (long) srcNode.getProperty(attName);
+                long dstCommunity = (long) dstNode.getProperty(attName);
+                if (srcCommunity == dstCommunity) {
+                    continue;
+                } else {
+                    if(aValueMap.containsKey(srcCommunity)){
+                        aValueMap.put(srcCommunity, aValueMap.get(srcCommunity) + 1);
+                    }else{
+                        aValueMap.put(srcCommunity, 1L);
+                    }
+                    if(aValueMap.containsKey(dstCommunity)){
+                        aValueMap.put(dstCommunity, aValueMap.get(dstCommunity) + 1);
+                    }else{
+                        aValueMap.put(dstCommunity, 1L);
+                    }
+                    EValue eValue = new EValue(srcCommunity, dstCommunity);
+                    if(eValueMap.containsKey(eValue)){
+                        eValueMap.put(eValue, eValueMap.get(eValue) + 1L);
+                    }else{
+                        eValueMap.put(eValue, 1L);
                     }
                 }
-                tx.success();
             }
+            tx.success();
+        }
+        while(true) {
+            deltaQ = 0.0;
             findMaxDeltaQ();
-            if(deltaQ > 0){
+            if(deltaQ <= 0){
+                System.out.println(eValueMap.size() + " " + deltaQ);
+                break;
+            }else{
                 System.out.println("Selected " + deltaQ + " " + communityA + " " + communityB);
                 try {
                     fileWriter.write("Selected " + deltaQ + " " + communityA + " " + communityB);
@@ -133,13 +142,8 @@ public class FastNewman2 {
                 }
                 try(Transaction tx = graph.beginTx()){
                     mergeCommunity(communityA, communityB);
-                    communityNum --;
                     tx.success();
                 }
-                Q += deltaQ;
-                deltaQ = 0.0;
-            }else{
-                break;
             }
         }
         Timer.timer().stop();
@@ -158,9 +162,8 @@ public class FastNewman2 {
             long ai = aValueMap.get(eValue.getI());
             long aj = aValueMap.get(eValue.getJ());
             double temp = 2 * (double)(eij * edgeNum - ai * aj) / (double)(edgeNum * edgeNum);
-//            System.out.println("i:" + eValue.getI() + "  j:" + eValue.getJ() + " eij:" + eij + "  deltaQ:" + temp);
             try {
-                fileWriter.write("   " + "i:" + eValue.getI()  + "  ai:" + ai + "  j:" + eValue.getJ() + "  aj:" + aj + " eij:" + eij + "  deltaQ:" + temp);
+                fileWriter.write("   " + "i:" + eValue.getI() + "  j:" + eValue.getJ()  + "  ai:" + ai + "  j:" + eValue.getJ() + "  aj:" + aj + " eij:" + eij + "  deltaQ:" + temp);
                 fileWriter.newLine();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -179,6 +182,46 @@ public class FastNewman2 {
             Node node = srcIterator.next();
             node.setProperty(attName, targetCommunity);
         }
+        EValue eValue = new EValue(srcCommunity, targetCommunity);
+        long oldEij = eValueMap.get(eValue);
+        long oldAi = aValueMap.get(srcCommunity);
+        long oldAj = aValueMap.get(targetCommunity);
+        long newAj = oldAi + oldAj - 2 * oldEij;
+        List<EValue> eValueRemoveList = new ArrayList<>();
+        Map<EValue, Long> eValueAddMap = new HashMap<>();
+        eValueMap.remove(new EValue(srcCommunity, targetCommunity));
+        for(Map.Entry<EValue, Long> entry : eValueMap.entrySet()){
+            EValue tempEvalue = entry.getKey();
+            if(tempEvalue.getI() == srcCommunity){
+                //eik
+                EValue ekj = new EValue(tempEvalue.getJ(), targetCommunity);
+                if(eValueMap.containsKey(ekj)){
+                    eValueAddMap.put(ekj, eValueMap.get(ekj) + entry.getValue());
+                }else{
+                    eValueAddMap.put(ekj, entry.getValue());
+                }
+//                eValueMap.remove(eValue1);
+                eValueRemoveList.add(tempEvalue);
+            }else if(tempEvalue.getJ() == srcCommunity){
+                //eki
+                EValue ekj = new EValue(tempEvalue.getI(), targetCommunity);
+                if(eValueMap.containsKey(ekj)){
+                    eValueAddMap.put(ekj, eValueMap.get(ekj) + entry.getValue());
+                }else{
+                    eValueAddMap.put(ekj, entry.getValue());
+                }
+//                eValueMap.remove(eValue1);
+                eValueRemoveList.add(tempEvalue);
+            }
+        }
+        aValueMap.remove(srcCommunity);
+        aValueMap.put(targetCommunity, newAj);
+        if(!eValueRemoveList.isEmpty()) {
+            for (EValue removeE : eValueRemoveList) {
+                eValueMap.remove(removeE);
+            }
+        }
+        eValueMap.putAll(eValueAddMap);
     }
 
     class EValue{

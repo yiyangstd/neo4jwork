@@ -9,7 +9,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
  */
 public class FastNewman2Test {
     public static void main(String[] args){
-        GraphDatabaseService graph = NeoConnect.getInstance("F:\\neo4jTest\\201101mFN.db");
+        GraphDatabaseService graph = NeoConnect.getInstance("F:\\neo4jTest\\karate2.db");
         FastNewman2 test = new FastNewman2(graph);
         test.execute();
     }
